@@ -1,0 +1,14 @@
+{
+    "name": "coding_us",
+    "version": "1.0.0",
+    "main": "index.js",
+    "private": "true",
+    "workspaces": [
+        "client",
+        "server"
+    ],
+    "scripts": {
+        "client": "yarn workspace client dev",
+        "server": "yarn workspace server start"
+    }
+}
