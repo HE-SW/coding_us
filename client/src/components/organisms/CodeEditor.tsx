@@ -1,21 +1,37 @@
 import CodeMirror, { ViewUpdate, ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { javascript } from '@codemirror/lang-javascript';
-import { Ref, useCallback, useState } from 'react';
-
+import { Ref, RefObject, useCallback, useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 type Props = {
-    minHeight?: string;
     ref?: Ref<ReactCodeMirrorRef>;
+    socketRef: RefObject<ReturnType<typeof io>>;
 };
 
-export default function CodeEditor({ minHeight, ref }: Props) {
+export default function CodeEditor({ ref, socketRef }: Props) {
     const [value, setValue] = useState(`function solution() {
     var answer;
     return answer;
 }`);
-    const onChange = useCallback((val: string, viewUpdate: ViewUpdate) => {
-        setValue(val);
-    }, []);
+
+    const updateCode = debounce((newCode: string) => {
+        socketRef.current.emit('code-update', newCode);
+    });
+
+    const onChange = useCallback(
+        (val: string, viewUpdate: ViewUpdate) => {
+            setValue(val);
+            updateCode(val);
+        },
+        [updateCode]
+    );
+
+    useEffect(() => {
+        socketRef.current.on('code-update', newCode => {
+            setValue(newCode);
+        });
+        socketRef.current.emit('code-update', value);
+    }, [value]);
 
     return (
         <>
@@ -30,4 +46,14 @@ export default function CodeEditor({ minHeight, ref }: Props) {
             />
         </>
     );
+}
+
+function debounce(func: Function, timeout = 300) {
+    let timer: NodeJS.Timeout;
+    return (...args: any) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            func.apply(this, args);
+        }, timeout);
+    };
 }

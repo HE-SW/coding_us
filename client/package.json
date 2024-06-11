@@ -19,7 +19,8 @@
         "react": "^19.0.0-rc-6230622a1a-20240610",
         "react-dom": "^19.0.0-rc-6230622a1a-20240610",
         "react-resizable-panels": "^2.0.19",
-        "react-router-dom": "^6.23.1"
+        "react-router-dom": "^6.23.1",
+        "socket.io-client": "^4.7.5"
     },
     "devDependencies": {
         "@types/node": "^20",

@@ -1,14 +1,29 @@
 import CodeEditor from '../components/organisms/CodeEditor';
 import classNames from 'classnames';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
-
+import { io } from 'socket.io-client';
 const handleStyle = 'bg-gray-500 active:bg-slate-400 transition-colors';
+const SOCKET_SERVER_URL = 'http://localhost:4040'; // 서버 URL
 
 export default function CodingUs() {
     const [output, setOutput] = useState<string>();
     const editorRef = useRef<ReactCodeMirrorRef>(null);
+    const socketRef = useRef(
+        io(SOCKET_SERVER_URL, {
+            transports: ['websocket', 'polling'],
+        })
+    );
+
+    useEffect(() => {
+        socketRef.current.on('connect', () => {
+            console.log('Connected to server');
+        });
+        return () => {
+            socketRef.current.disconnect();
+        };
+    }, []);
 
     const onClickCodeRun = () => {
         const code = editorRef.current?.view?.state.doc.toString();
@@ -39,7 +54,7 @@ export default function CodingUs() {
                 <Panel minSize={25}>
                     <PanelGroup direction="vertical">
                         <Panel minSize={25}>
-                            <CodeEditor ref={editorRef} />
+                            <CodeEditor ref={editorRef} socketRef={socketRef} />
                         </Panel>
                         <PanelResizeHandle className={classNames(handleStyle, 'p-1')} />
                         <Panel minSize={25} defaultSize={25}>

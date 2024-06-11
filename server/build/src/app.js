@@ -52,17 +52,22 @@ app.use('/trpc', trpcExpress.createExpressMiddleware({
     router: appRouter,
     createContext,
 }));
-let code = '';
+let code = `function solution() {
+    var answer;
+    return answer;
+}`;
 io.on('connection', socket => {
+    console.log('connection', 'test');
     socket.emit('code-update', code);
     socket.on('code-update', newCode => {
         code = newCode;
-        socket.broadcast.emit('code-update', newCode);
+        socket.broadcast.emit('code-update', code);
     });
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });
 });
+// connection();
 app.listen(app.get('port'), () => {
     console.log(app.get('port'), '번에서 대기중');
 });
