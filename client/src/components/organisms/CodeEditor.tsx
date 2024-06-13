@@ -30,8 +30,7 @@ export default function CodeEditor({ ref, socketRef }: Props) {
         socketRef.current.on('code-update', newCode => {
             setValue(newCode);
         });
-        socketRef.current.emit('code-update', value);
-    }, [value]);
+    }, []);
 
     return (
         <>
