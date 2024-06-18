@@ -1,0 +1,7 @@
+.cm-tooltip.cm-tooltip-cursor {
+    color: white;
+    border: none;
+    padding: 2px 7px;
+    font-size: 10px;
+    border-radius: 4px;
+}

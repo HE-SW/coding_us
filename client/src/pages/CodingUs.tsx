@@ -1,4 +1,4 @@
-import CodeEditor from '../components/organisms/CodeEditor';
+import CodeEditor from '../lib/codemirror/CodeEditor';
 import classNames from 'classnames';
 import { useState, useRef, useEffect } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
@@ -10,7 +10,11 @@ const SOCKET_SERVER_URL = 'http://localhost:4040?id=1'; // 서버 URL
 export default function CodingUs() {
     const [output, setOutput] = useState<string>();
     const editorRef = useRef<ReactCodeMirrorRef>(null);
-    const socketRef = useRef(io(SOCKET_SERVER_URL));
+    const socketRef = useRef(
+        io(SOCKET_SERVER_URL, {
+            withCredentials: true,
+        })
+    );
 
     useEffect(() => {
         socketRef.current.on('connect', () => {

@@ -6,6 +6,13 @@ export default function socket(server: http.Server<typeof http.IncomingMessage, 
         cors: {
             origin: 'http://localhost:5173',
             methods: ['GET', 'POST'],
+            credentials: true,
+        },
+        cookie: {
+            name: 'coding-us-cookie',
+            httpOnly: true,
+            sameSite: 'lax',
+            maxAge: 86400,
         },
     });
 
@@ -26,3 +33,6 @@ let code = `function solution() {
     var answer;
     return answer;
 }`;
+
+let cursor = [];
+let tooltip = [];

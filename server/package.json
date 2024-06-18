@@ -11,6 +11,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@prisma/adapter-pg": "^5.15.0",
         "@prisma/client": "^5.15.0",
         "@trpc/server": "^10.45.2",
         "@types/express": "^4.17.21",
