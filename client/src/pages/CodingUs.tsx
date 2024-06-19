@@ -5,7 +5,7 @@ import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { io } from 'socket.io-client';
 const handleStyle = 'bg-gray-500 active:bg-slate-400 transition-colors';
-const SOCKET_SERVER_URL = 'http://localhost:4040?id=1'; // 서버 URL
+const SOCKET_SERVER_URL = 'http://localhost:4040'; // 서버 URL
 
 export default function CodingUs() {
     const [output, setOutput] = useState<string>();

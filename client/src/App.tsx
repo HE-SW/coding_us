@@ -1,22 +1,9 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Join from './pages/Join';
-import CodingUs from './pages/CodingUs';
-
-const router = createBrowserRouter([
-    {
-        path: '/',
-        element: <Join />,
-    },
-    {
-        path: 'coding-us',
-        element: <CodingUs />,
-    },
-]);
+import Router from './Router';
 
 function App() {
     return (
         <div className="w-screen h-screen">
-            <RouterProvider router={router} />
+            <Router />
         </div>
     );
 }
