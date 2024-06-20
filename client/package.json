@@ -18,6 +18,7 @@
         "babel-plugin-react-compiler": "^0.0.0-experimental-938cd9a-20240601",
         "classnames": "^2.5.1",
         "eslint-plugin-react-compiler": "^0.0.0-experimental-51a85ea-20240601",
+        "process": "^0.11.10",
         "react": "^19.0.0-rc-6230622a1a-20240610",
         "react-dom": "^19.0.0-rc-6230622a1a-20240610",
         "react-resizable-panels": "^2.0.19",

@@ -1,43 +1,21 @@
-import CodeMirror, {
-    ViewUpdate,
-    ReactCodeMirrorRef,
-    showTooltip,
-    EditorState,
-    Tooltip,
-    StateField,
-} from '@uiw/react-codemirror';
+import CodeMirror, { ReactCodeMirrorRef, EditorView } from '@uiw/react-codemirror';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { javascript } from '@codemirror/lang-javascript';
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import './tooltip.css';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { RemoteCursor, addRemoteCursorEffect, remoteCursorPlugin, remoteCursorsField } from './remoteCursor';
+import { debounce, randomHexColorCode } from './utils';
 
 type Props = {
     ref?: React.RefObject<ReactCodeMirrorRef | null>;
     socketRef: RefObject<ReturnType<typeof io>>;
 };
-type CursorPosition = {
-    userId: string;
-    pos: number;
-    color: string;
-};
-
-type SelectionArea = {
-    userId: string;
-    from: number;
-    to: number;
-    color: string;
-};
 
 export default function CodeEditor({ ref, socketRef }: Props) {
-    const [value, setValue] = useState(`function solution() {
-    var answer;
-    return answer;
-}`);
-    const params = useSearchParams();
-    const userId = params[0].get('id') as string;
-
+    const [value, setValue] = useState('');
+    const [remoteCursors, setRemoteCursors] = useState<RemoteCursor[]>([]);
+    const colorRef = useRef(randomHexColorCode());
     const updateCode = useCallback(
         debounce((newValue: string) => {
             socketRef.current.emit('code-update', newValue);
@@ -46,7 +24,7 @@ export default function CodeEditor({ ref, socketRef }: Props) {
     );
 
     const onChange = useCallback(
-        (val: string, viewUpdate: ViewUpdate) => {
+        (val: string) => {
             setValue(val);
             updateCode(val);
         },
@@ -58,15 +36,41 @@ export default function CodeEditor({ ref, socketRef }: Props) {
             console.log(newCode);
             setValue(newCode);
         });
+
+        socketRef.current.on('cursor-move', (data: RemoteCursor[]) => {
+            setRemoteCursors(data.filter(v => v.clientId !== socketRef.current.id));
+        });
     }, []);
 
-    const onUpdate = useCallback((viewUpdate: ViewUpdate) => {
-        const { view, state } = viewUpdate;
-        if (view.hasFocus) {
-            const tooltip = getCursor(state, userId);
-            const area = getSelectionArea(state, userId);
+    const emitCursorMove = useCallback(
+        debounce((lineNumber: number, column: number) => {
+            socketRef.current.emit('cursor-move', {
+                lineNumber,
+                column,
+                clientId: socketRef.current.id,
+                color: colorRef.current,
+            });
+        }, 300),
+        []
+    );
+
+    const handleEditorUpdate = (update: any) => {
+        if (update.selectionSet) {
+            const cursorPosition = update.state.selection.main.head;
+            const line = update.state.doc.lineAt(cursorPosition);
+            const column = cursorPosition - line.from;
+            const lineNumber = line.number;
+            emitCursorMove(lineNumber, column);
         }
-    }, []);
+    };
+
+    useEffect(() => {
+        if (ref?.current) {
+            ref.current.view?.dispatch({
+                effects: addRemoteCursorEffect.of(remoteCursors),
+            });
+        }
+    }, [remoteCursors]);
 
     return (
         <>
@@ -79,68 +83,14 @@ export default function CodeEditor({ ref, socketRef }: Props) {
                 onBlur={() => {
                     // 포커스 아웃되면 툴팁 삭제 기능
                 }}
-                onUpdate={onUpdate}
-                extensions={[javascript({ jsx: true })]}
+                extensions={[
+                    javascript({ jsx: true }),
+                    EditorView.updateListener.of(handleEditorUpdate),
+                    remoteCursorsField,
+                    remoteCursorPlugin,
+                ]}
                 onChange={onChange}
             />
         </>
     );
-}
-
-function debounce(func: Function, timeout = 300) {
-    let timer: NodeJS.Timeout;
-    return (...args: any) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            func.apply(this, args);
-        }, timeout);
-    };
-}
-
-function getCursor(state: EditorState, userId: string): CursorPosition[] {
-    return state.selection.ranges
-        .filter(range => range.empty)
-        .map(range => {
-            return {
-                pos: range.head,
-                userId,
-                color: '#f9af4dcc',
-            };
-        });
-}
-
-function getCursorTooltips(state: EditorState, textContent: string): readonly Tooltip[] {
-    return state.selection.ranges
-        .filter(range => range.empty)
-        .map(range => {
-            let line = state.doc.lineAt(range.head);
-            // let text = line.number + ':' + (range.head - line.from);
-            return {
-                pos: range.head,
-                above: true,
-                strictSide: false,
-                arrow: false,
-                create: () => {
-                    let dom = document.createElement('div');
-                    dom.className = 'cm-tooltip-cursor';
-                    dom.textContent = textContent;
-                    dom.style.backgroundColor = '#f9af4dcc';
-                    return { dom };
-                },
-            };
-        });
-}
-
-function getSelectionArea(state: EditorState, userId: string) {
-    return state.selection.ranges
-        .filter(range => !range.empty)
-        .map(range => {
-            const { from, to } = range;
-            return {
-                from,
-                to,
-                userId,
-                color: '#f9af4dcc',
-            };
-        });
 }

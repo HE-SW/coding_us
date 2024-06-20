@@ -1,7 +1,15 @@
-.cm-tooltip.cm-tooltip-cursor {
+.cm-tooltip-cursor {
     color: white;
     border: none;
     padding: 2px 7px;
     font-size: 10px;
     border-radius: 4px;
+}
+
+.cm-remote-cursor {
+    margin-left: -1px;
+    height: 1.2em;
+    pointer-events: none;
+    position: absolute;
+    z-index: 10;
 }

@@ -7,8 +7,8 @@ let code = `function solution() {
 }`;
 
 const cursorMap = new Map<string, any>();
-const users: Record<string, any> = {};
-const socketToRoom: Record<string, any> = {};
+const users: Record<string, string[]> = {};
+const socketToRoom: Record<string, string> = {};
 
 export default function socket(server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>) {
     const io = new Server(server, {
@@ -36,7 +36,8 @@ export default function socket(server: http.Server<typeof http.IncomingMessage, 
 
         socket.on('cursor-move', data => {
             cursorMap.set(socket.id, data);
-            socket.broadcast.emit('cursor-move', Object.fromEntries(cursorMap));
+            const cursorArray = [...cursorMap.values()];
+            socket.broadcast.emit('cursor-move', cursorArray);
         });
 
         socket.on('join room', roomID => {
@@ -64,11 +65,14 @@ export default function socket(server: http.Server<typeof http.IncomingMessage, 
         });
 
         socket.on('disconnect', () => {
+            console.log('disconnect ', socket.id);
+            cursorMap.delete(socket.id);
             const roomID = socketToRoom[socket.id];
             let room = users[roomID];
             if (room) {
                 room = room.filter((id: string) => id !== socket.id);
                 users[roomID] = room;
+                socket.broadcast.emit('out user', socket.id);
             }
         });
     });

@@ -4,8 +4,9 @@ import { useState, useRef, useEffect } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { io } from 'socket.io-client';
-const handleStyle = 'bg-gray-500 active:bg-slate-400 transition-colors';
-const SOCKET_SERVER_URL = 'http://localhost:4040'; // 서버 URL
+import Txt from '../components/atoms/Txt';
+const handleStyle = 'bg-dark-600 active:bg-slate-400 transition-colors';
+const SOCKET_SERVER_URL = import.meta.env.VITE_SOCKET_SERVER_URL || ''; // 서버 URL
 
 export default function CodingUs() {
     const [output, setOutput] = useState<string>();
@@ -34,37 +35,54 @@ export default function CodingUs() {
 
     const getBottomPanel = () => {
         return (
-            <div className="flex-[0_0_60px] border-t-2 border-gray-500 flex justify-between items-center px-2">
+            <div className="flex-[0_0_60px] flex justify-between items-center px-3">
                 <div></div>
-                <button className="bg-gray-500 w-32 rounded-sm hover:bg-gray-700 h-12" onClick={onClickCodeRun}>
-                    코드 실행
+                <button className="bg-dark-200 px-5 py-[5px] rounded hover:bg-dark-300" onClick={onClickCodeRun}>
+                    <Txt className="font-semibold text-dark-50">체점하기</Txt>
                 </button>
             </div>
         );
     };
 
+    const getOutPut = () => {
+        'use server';
+        return (
+            <div className="h-full">
+                <Txt>{output}</Txt>
+            </div>
+        );
+    };
+
     return (
-        <div className="w-full h-full flex flex-col bg-[#1e1e1e] text-white">
+        <div className="w-full h-full flex flex-col bg-main-background text-white">
             <PanelGroup direction="horizontal" className="flex-1">
-                <Panel minSize={10}>Left</Panel>
-                <PanelResizeHandle className={classNames(handleStyle, 'p-1 ')} />
-                <Panel minSize={25}>
-                    <PanelGroup direction="vertical">
-                        <Panel minSize={25}>
-                            <CodeEditor ref={editorRef} socketRef={socketRef} />
-                        </Panel>
-                        <PanelResizeHandle className={classNames(handleStyle, 'p-1')} />
-                        <Panel minSize={25} defaultSize={25}>
-                            {output}
-                        </Panel>
+                <Panel>
+                    <PanelGroup direction="vertical" className="flex-1">
+                        <PanelGroup direction="horizontal" className="flex-1">
+                            <Panel minSize={10} className="bg-dark-700">
+                                <div className=" h-full">문제</div>
+                            </Panel>
+                            <PanelResizeHandle className={classNames(handleStyle, 'p-[2px]')} />
+                            <Panel minSize={25}>
+                                <PanelGroup direction="vertical">
+                                    <Panel minSize={25}>
+                                        <CodeEditor ref={editorRef} socketRef={socketRef} />
+                                    </Panel>
+                                    <PanelResizeHandle className={classNames(handleStyle, 'p-[2px]')} />
+                                    <Panel minSize={25} defaultSize={25} className="bg-dark-700">
+                                        {getOutPut()}
+                                    </Panel>
+                                </PanelGroup>
+                            </Panel>
+                        </PanelGroup>
+                        {getBottomPanel()}
                     </PanelGroup>
                 </Panel>
-                <PanelResizeHandle className={classNames(handleStyle, 'p-1')} />
-                <Panel minSize={10} defaultSize={15}>
-                    Right
+                <PanelResizeHandle className={classNames(handleStyle)} />
+                <Panel defaultSize={20} maxSize={25}>
+                    chat
                 </Panel>
             </PanelGroup>
-            {getBottomPanel()}
         </div>
     );
 }
